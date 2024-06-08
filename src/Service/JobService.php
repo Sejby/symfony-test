@@ -10,15 +10,16 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class JobService
 {
+
     private $client;
     private $jobMapper;
     private $accessToken;
 
-    public function __construct(HttpClientInterface $client, JobMapper $jobMapper)
+    public function __construct(string $token, HttpClientInterface $client, JobMapper $jobMapper)
     {
         $this->client = $client;
         $this->jobMapper = $jobMapper;
-        $this->accessToken = "89d985c4b1c25c26fe3b1595b4ef3137a0ebb549.11169.dd37716503850db285a143eeef3dd663";
+        $this->accessToken = $token;
     }
 
     public function fetchJobs(int $page, int $limit): array
