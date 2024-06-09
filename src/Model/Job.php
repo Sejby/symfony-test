@@ -4,43 +4,48 @@ namespace App\Model;
 
 class Job
 {
-    private int $id;
-    private string $title;
-    private string $description;
-    private bool $draft;
-    private bool $active;
 
-    public function __construct(int $id, string $title, string $description, bool $draft, bool $active)
-    {
-        $this->id = $id;
-        $this->title = $title;
-        $this->description = $description;
-        $this->draft = $draft;
-        $this->active = $active;
-    }
+    public function __construct(private int $id, private string $title, private string $description, private string $date_created)
+    {}
 
+    /**
+     * Vrátí ID inzerátu
+     *
+     * @return int
+     */
     public function getId(): int
     {
         return $this->id;
     }
 
+    /**
+     * Vrátí nadpis inzerátu
+     *
+     * @return string
+     */
     public function getTitle(): string
     {
         return $this->title;
     }
 
+    /**
+     * Vrátí popis inzerátu
+     *
+     * @return string
+     */
     public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function isDraft(): bool
+    /** 
+     * Vrátí datum vytvoření inzerátu
+     *
+     * @return string
+     */
+    public function getDateCreated(): string
     {
-        return $this->draft;
-    }
-
-    public function isActive(): bool
-    {
-        return $this->active;
+        $timestamp = date("d.m.Y H:m", strtotime(date($this->date_created)));
+        return $timestamp;
     }
 }

@@ -12,27 +12,26 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 class JobService
 {
-    private $client;
-    private $jobMapper;
-    private $accessToken;
-    private $cache;
 
-    public function __construct(string $token, HttpClientInterface $client, JobMapper $jobMapper, CacheInterface $cache)
-    {
-        $this->client = $client;
-        $this->jobMapper = $jobMapper;
-        $this->accessToken = $token;
-        $this->cache = $cache;
-    }
+    public function __construct(private string $token, private HttpClientInterface $client, private JobMapper $jobMapper, private CacheInterface $cache)
+    {}
 
+    /**
+     * Získá inzeráty s cachováním.
+     *
+     * @param int $page
+     * @param int $limit
+     * @return array
+     * @throws Exception
+     */
     public function fetchJobs(int $page, int $limit): array
     {
-        $cacheKey = sprintf('jobs_page_%d_limit_%d', $page, $limit);
-
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($page, $limit) {
-            $item->expiresAfter(3600); // Nastavte dobu expirace cache na 1 hodinu
-
-            try {
+        $cache_key = sprintf('jobs_page_%d_limit_%d', $page, $limit);
+    
+        try {
+            return $this->cache->get($cache_key, function (ItemInterface $item) use ($page, $limit) {
+                $item->expiresAfter(3600);
+    
                 $response = $this->client->request(
                     'GET',
                     'https://app.recruitis.io/api2/jobs',
@@ -42,35 +41,49 @@ class JobService
                             'limit' => $limit,
                         ],
                         'headers' => [
-                            'Authorization' => 'Bearer ' . $this->accessToken,
+                            'Authorization' => 'Bearer ' . $this->token,
                         ],
                     ]
                 );
-
+    
                 $data = $response->toArray();
-
+    
+                if (empty($data['payload']) || !isset($data['meta']['entries_total'])) {
+                    return ['jobs' => [], 'total_jobs' => 0];
+                }
+    
                 $jobs = [];
                 foreach ($data['payload'] as $jobData) {
                     $job = $this->jobMapper->map($jobData);
                     $jobs[] = $job;
                 }
-
-                $total_jobs = $data['meta']['entries_total']; // Celkový počet pracovních inzerátů
-
+    
+                $total_jobs = $data['meta']['entries_total'];
+    
                 return ['jobs' => $jobs, 'total_jobs' => $total_jobs];
-
-            } catch (ClientException $e) {
-                throw new Exception($e->getMessage(), $e->getCode());
-            }
-        });
+            });
+        } catch (ClientException $e) {
+            throw new Exception('Neúspěšné získání dat z API: ' . $e->getMessage(), $e->getCode());
+            
+        }
     }
+    
+    
 
+
+    /**
+     * Získá detail inzerátu s cachováním.
+     *
+     * @param int $id
+     * @return Job
+     * @throws Exception
+     */
     public function fetchJobDetail(int $id): Job
     {
         $cacheKey = sprintf('job_detail_%d', $id);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($id) {
-            $item->expiresAfter(3600); // Nastavte dobu expirace cache na 1 hodinu
+            $item->expiresAfter(3600); // Uloží data do cache, které expirují po 1 hodině
 
             try {
                 $response = $this->client->request(
@@ -78,7 +91,7 @@ class JobService
                     sprintf('https://app.recruitis.io/api2/jobs/%d', $id),
                     [
                         'headers' => [
-                            'Authorization' => 'Bearer ' . $this->accessToken,
+                            'Authorization' => 'Bearer ' . $this->token,
                         ],
                     ]
                 );
@@ -87,7 +100,7 @@ class JobService
                 return $this->jobMapper->map($data['payload']);
 
             } catch (ClientException $e) {
-                throw new Exception($e->getMessage(), $e->getCode());
+                throw new Exception('Neúspěšné získání dat z API: ' . $e->getMessage(), $e->getCode());
             }
         });
     }

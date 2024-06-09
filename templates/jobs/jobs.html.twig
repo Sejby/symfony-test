@@ -1,0 +1,54 @@
+{% extends "base.html.twig" %}
+
+{% block title %}
+    Inzeráty
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+<div id="jobs" style="width: 90%; margin: auto; padding-top: 20px">
+    <h2>Inzeráty</h2>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Místo</th>
+                <th>Datum vytvoření</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+                <tr>
+                    <td>
+                        <a href="{{ path('job_detail', {'id': job.getId()}) }}">{{ job.getTitle() }}</a>
+                    </td>
+                    <td>{{ job.getDateCreated() }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if current_page > 1 %}
+                <a class="page-link" href="{{ path('jobs', {'page': current_page - 1}) }}">Předchozí</a>
+            {% endif %}
+
+            {% for page in 1..total_pages %}
+                {% if page == current_page %}
+                    <span class="page-link" style="color: black">{{ page }}</span>
+                {% else %}
+                    <a class="page-link" href="{{ path('jobs', {'page': page}) }}">{{ page }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if current_page < total_pages %}
+                <a class="page-link" href="{{ path('jobs', {'page': current_page + 1}) }}">Další</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
