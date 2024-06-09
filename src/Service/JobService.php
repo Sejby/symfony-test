@@ -75,7 +75,7 @@ class JobService
             try {
                 $response = $this->client->request(
                     'GET',
-                    sprintf('https://api.example.com/jobs/%d', $id),
+                    sprintf('https://app.recruitis.io/api2/jobs/%d', $id),
                     [
                         'headers' => [
                             'Authorization' => 'Bearer ' . $this->accessToken,

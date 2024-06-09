@@ -38,4 +38,14 @@ class ApiController extends AbstractController
             'total_pages' => ceil($total_jobs / $limit),
         ]);
     }
+
+    #[Route('/job/{id}', name: 'job_detail')]
+    public function jobDetail(int $id): Response
+    {
+        $job = $this->jobService->fetchJobDetail($id);
+
+        return $this->render('job_detail.html.twig', [
+            'job' => $job,
+        ]);
+    }
 }
