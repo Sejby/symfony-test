@@ -4,11 +4,10 @@ namespace App\Service;
 
 use App\Mapper\JobMapper;
 use App\Model\Job;
-use Exception;
-use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Exception;
 
 class JobService
 {
@@ -48,23 +47,19 @@ class JobService
     
                 $data = $response->toArray();
     
-                if (empty($data['payload']) || !isset($data['meta']['entries_total'])) {
+                // Pokud jsou data prázdná, vrátíme prázdné pole
+                if ($data['meta']['code'] == "api.response.null") 
                     return ['jobs' => [], 'total_jobs' => 0];
-                }
-    
-                $jobs = [];
-                foreach ($data['payload'] as $jobData) {
-                    $job = $this->jobMapper->map($jobData);
-                    $jobs[] = $job;
-                }
+                
+                // Mapuje data z payload na objekty třídy Job pomocí JobMapperu
+                $jobs = array_map([$this->jobMapper, 'map'], $data['payload']);
     
                 $total_jobs = $data['meta']['entries_total'];
     
                 return ['jobs' => $jobs, 'total_jobs' => $total_jobs];
             });
-        } catch (ClientException $e) {
-            throw new Exception('Neúspěšné získání dat z API: ' . $e->getMessage(), $e->getCode());
-            
+        } catch (Exception $e) {
+            throw new Exception('Chyba při fetchování dat: ' . $e->getMessage(), $e->getCode());
         }
     }
     
@@ -78,7 +73,7 @@ class JobService
      * @return Job
      * @throws Exception
      */
-    public function fetchJobDetail(int $id): Job
+    public function fetchJobDetail(int $id): ?Job
     {
         $cacheKey = sprintf('job_detail_%d', $id);
 
@@ -97,10 +92,15 @@ class JobService
                 );
 
                 $data = $response->toArray();
+
+                 // Ošetření chyby neexistujícího inzerátu 
+                 if ($data['meta']['code'] === 'api.response.null')
+                    return null;
+
                 return $this->jobMapper->map($data['payload']);
 
-            } catch (ClientException $e) {
-                throw new Exception('Neúspěšné získání dat z API: ' . $e->getMessage(), $e->getCode());
+            } catch (Exception $e) {
+                throw new Exception('Chyba při fetchování dat: ' . $e->getMessage(), $e->getCode());
             }
         });
     }

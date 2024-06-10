@@ -45,19 +45,18 @@ class JobController extends AbstractController
 
     // Vrátí detail jednotlivého inzerátu
     #[Route('/job/{id}', name: 'job_detail', requirements: ['id' => '\d+'])]
-    public function jobDetail(int $id): Response
+    public function jobDetail(int $id, Request $request): Response
     {
         // Získá detail inzerátu podle ID z JobService (mapováno na třídu Job)
         $job = $this->jobService->fetchJobDetail($id);
 
-        // Pokud inzerát neexistuje, vyhodíme výjimku
-        if (!$job) {
-            throw $this->createNotFoundException('Job not found');
-        }
+        // Získá aktuální stránku
+        $page = $request->query->getInt('page', 1);
 
         // Vykreslení do šablony s potřebnou proměnnou
         return $this->render('jobs/job_detail.html.twig', [
             'job' => $job,
+            'page' => $page,
         ]);
     }
 }

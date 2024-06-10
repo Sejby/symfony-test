@@ -23,7 +23,7 @@ class JobMapper
     }
 
     /**
-     * Mapuje pole dat na kolekci instancí Job.
+     * Mapuje pole dat na pole instancí Job.
      *
      * @param array $data
      * @return Job[]

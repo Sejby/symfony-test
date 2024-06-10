@@ -10,6 +10,10 @@
 
 {% block body %}
 <div id="jobs" style="width: 90%; margin: auto; padding-top: 20px">
+    {% if total_jobs == 0 %}
+        <h2>Nebyly nalezeny žádné inzeráty</h2>
+    {% else %}
+        
     <h2>Inzeráty</h2>
 
     <table class="table table-striped">
@@ -23,13 +27,14 @@
             {% for job in jobs %}
                 <tr>
                     <td>
-                        <a href="{{ path('job_detail', {'id': job.getId()}) }}">{{ job.getTitle() }}</a>
+                        <a href="{{ path('job_detail', {'page': current_page, 'id': job.getId()}) }}">{{ job.getTitle() }}</a>
                     </td>
                     <td>{{ job.getDateCreated() }}</td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
+    {% endif %}
 
     {% if total_pages > 1 %}
         <div class="pagination">

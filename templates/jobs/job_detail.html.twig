@@ -5,9 +5,15 @@
 {% endblock %}
 
 {% block body %}
+{% if job != null %}
+
 <div id="job-detail" style="width: 90%; margin: auto; padding-top: 20px; padding-bottom: 20px;">
-    <a href="{{ path('jobs') }}">Zpět</a>
+    <a href="{{ path('jobs', { 'page': page }) }}">Zpět</a>
     <h1>{{ job.title }}</h1>
     <div>{{ job.description|raw }}</div>
 </div>
+
+{% else %}
+    <h2>Inzerát neexistuje</h2>
+{% endif %}
 {% endblock %}
